@@ -25,13 +25,13 @@ else
      SCRIPT_LOCATION=`echo ${PWD}/\`dirname $0\` | sed 's#\/\.$##g'`
 fi
 SCRIPT_NAME=`basename $0`
-tdate=`date '+%Y%m%d%H'`
-datafile=${SCRIPT_LOCATION}/${SCRIPT_NAME%%.*}_${tdate}.txt
 #
 # Main
 #
 while [ true ]
 do
+tdate=`date '+%Y%m%d%H'`
+datafile=${SCRIPT_LOCATION}/${SCRIPT_NAME%%.*}_${tdate}.txt
 echo "===== `date` =====" >> $datafile
 ssh ${ro_user}@${active_firewall}<<EOF >> $datafile
 set cli pager off
