@@ -9,7 +9,7 @@ site1_check=$2
 site2_check=$3
 num_iterations=${4:-50}
 if [ -z "$gslb_url" -o -z "$site1_check" -o -z "$site2_check" ]; then
-	echo -e "\nMissing arguments!\nUSAGE: bash lbTest.sh <site_URL> <site1_regex> <site2_regex> [number of iterations]\n\n"
+	echo -e "\nMissing arguments!\nUSAGE: bash $(basename $0) <site_URL> <site1_regex> <site2_regex> [number of iterations]\n\n"
 	exit 100
 fi
 count=1
