@@ -17,17 +17,24 @@ site1_count=1
 site1_total_time=0
 site2_count=1
 site2_total_time=0
+invalid_hits=0
 while [ $count -le $num_iterations ]
 do
-	curl_resp=`curl -k -m5 -w "\n%{time_total}\n" -s $gslb_url 2>/dev/null`
+	curl_resp=`curl -k -m5 -w "\n%{http_code}\n%{time_total}\n" -s $gslb_url 2>/dev/null`
 	curl_time=$(echo $curl_resp | awk '{print $NF}') 
+	curl_resp_code=$(echo $curl_resp | awk '{print $(NF-1)}') 
 	site_time=$(bc <<< "scale=2.2; $curl_time") 
-	[[ -n "`echo $curl_resp | grep -i \"$site1_check\"`" ]] && site1_count=$(( site1_count + 1 )) && site1_total_time=$(bc <<< "scale=2.2; $site1_total_time + $site_time")
-	[[ -n "`echo $curl_resp | grep -i \"$site2_check\"`" ]] && site2_count=$(( site2_count + 1 )) && site2_total_time=$(bc <<< "scale=2.2; $site2_total_time + $site_time")
+	if [ $curl_resp_code == 200 ]; then
+		[[ -n "`echo $curl_resp | grep -i \"$site1_check\"`" ]] && site1_count=$(( site1_count + 1 )) && site1_total_time=$(bc <<< "scale=2.2; $site1_total_time + $site_time")
+		[[ -n "`echo $curl_resp | grep -i \"$site2_check\"`" ]] && site2_count=$(( site2_count + 1 )) && site2_total_time=$(bc <<< "scale=2.2; $site2_total_time + $site_time")
+	else
+		invalid_hits=$(( invalid_hits + 1 ))
+	fi
 	count=$(( count + 1 ))
 done
 echo -e "\nGSLB URL TESTED = ${gslb_url}"
 echo -e "\nTOTAL NUMBER OF ITERATIONS = $(( count - 1 ))"
+echo -e "\nTOTAL NUMBER OF INVALID HITS (NOT HTTP 200) = $invalid_hits"
 site1_pct_hits=$(bc <<< "scale=2.2; ($site1_count - 1) * 100 / ($count - 1)")
 [ $site1_count -gt 1 ] && site1_avg_time=$(bc <<< "scale=2.2; $site1_total_time / ($site1_count - 1)") || site1_avg_time=0
 site2_pct_hits=$(bc <<< "scale=2.2; ($site2_count - 1) * 100 / ($count - 1)")
@@ -35,3 +42,6 @@ site2_pct_hits=$(bc <<< "scale=2.2; ($site2_count - 1) * 100 / ($count - 1)")
 #echo $site1_total_time $site2_total_time
 echo -e "\nSITE 1 (${site1_check}) HITS = $(( site1_count - 1 )) (${site1_pct_hits}%) | SITE 1 AVG. TIME = ${site1_avg_time} seconds"
 echo -e "\nSITE 2 (${site2_check}) HITS = $(( site2_count - 1 )) (${site2_pct_hits}%) | SITE 2 AVG. TIME = ${site2_avg_time} seconds\n\n"
+if [ $invalid_hits == 0 -a $(( site1_count - 1 )) == 0 -a $(( site2_count - 1 )) == 0 ]; then
+   echo -e "*****NOTE: If INVALID HITS = SITE 1 HITS = SITE 2 HITS = 0, then check your unique identifier for the webpage for each site.*****\n\n"
+fi
