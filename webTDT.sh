@@ -1,5 +1,6 @@
 #!/bin/bash
 # cybergavin (https://github.com/cybergavin)
+# webTDT => Web Traffic Distribution Tester
 # QAD script to test web traffic load distribution across  2 sites from an end-user perspective
 # The web application must deliver a unique identifier (site 1 regex and site2 regex) on its web page for each site in order to determine traffic distribution
 # May also be used to test a single URL with only the -u option (default #iterations is 50) 
